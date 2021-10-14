@@ -12,3 +12,6 @@ Main takeaways include
 
 ## Acquiring the data
 Links to downloading the data can be found [here](https://discourse.julialang.org/t/announcing-package-download-stats/69073). This repo makes use of the `package_requests_by_region_by_date.csv` file, so download it and extract into the data directory and you are good to go.
+
+## Reproducing the analysis
+After acquiring the data, drop into a Julia shell with `julia --project`, instantiate the project by hitting `]` followed by `instantiate RET`, and then run `include("scripts\produce_plots.jl")` to reproduce the plots.
