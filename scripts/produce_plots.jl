@@ -2,7 +2,7 @@ using Revise
 using Dates, CSV, DataFrames, StatsPlots, Pipe, Turing, FeatureTransforms, Statistics, LazyArrays
 
 df_region_date = CSV.read("data/package_requests_by_region_by_date.csv", DataFrame)
-client_type = "ci"
+client_type = "user"
 out_path = "plots/$client_type"
 save_path(file) = joinpath(out_path, file)
 isdir(out_path) || mkdir(out_path)
@@ -104,7 +104,7 @@ function prior_predictive_plot(chain)
         day_transform(xx; inverse=true),
         group(pred, "y").value.data[:,:,1]',
         group=rr,
-        title="Prior predictive samples",
+        title="Prior samples for $client_type",
         xlabel="Days",
         ylabel="Package downloads (log10)",
         label=nothing
@@ -119,7 +119,7 @@ function posterior_predictive_plot(chain)
         ss[:,:mean],
         ribbon=2*ss[:,:std],
         group=rr,
-        title="Posterior predictive samples",
+        title="Posterior predictive distribution for $client_type",
         xlabel="Days",
         ylabel="Package downloads (log10)",
         label=nothing,
@@ -165,7 +165,7 @@ savefig(post_slope_pooled_plt, save_path("package_request_posterior_trends.svg")
 βμ = post_chain["βμ"][:]
 all_regions_plt = density(
     βμ,
-    title="Population mean request trend",
+    title="Population mean request trend for $client_type",
     label=nothing,
     xlabel="Change per day (log10)",
     ylabel="Density",
