@@ -15,3 +15,5 @@ Links to downloading the data can be found [here](https://discourse.julialang.or
 
 ## Reproducing the analysis
 After acquiring the data, drop into a Julia shell with `julia --project`, instantiate the project by hitting `]` followed by `instantiate RET`, and then run `include("scripts\produce_plots.jl")` to reproduce the plots.
+
+![posterior predictive distribution for CI requests](./plots/ci/package_request_posterior_predictive.svg)
