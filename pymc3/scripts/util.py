@@ -11,8 +11,8 @@ def plot_samples(
 ):
     fig, ax = (fig, ax) if fig and ax else plt.subplots(figsize=(14, 11))
     print(f"{x.shape=}, {samples['y'].shape=}")
-    for y in samples["y"]:
-        ax.scatter(x, y, color="blue", alpha=0.04)
+    # for y in samples["y"]:
+    ax.plot(x, samples["y"].T, color="blue", alpha=0.04)
     return fig, ax
 
 
