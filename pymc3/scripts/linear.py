@@ -1,4 +1,3 @@
-# %%
 import pymc3 as pm
 
 from datalib import load, plot
@@ -6,7 +5,9 @@ import util
 
 df = load.requests_by_region_by_date()
 data_plot = plot.observations_per_region(df, log_scale=True)
-x, y, scaler = load.features_and_target((df))
+prob = load.construct_problem(df)
+x = prob.dates
+y = prob.request_counts_log10
 
 with pm.Model() as linear:
     a = pm.Normal("a", mu=4, sigma=1)
