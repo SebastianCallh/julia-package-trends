@@ -1,0 +1,19 @@
+linear:
+  alpha:
+    loc: 4
+    scale: 1
+  beta:
+    loc: 0
+    scale: 0.1
+  sigma:
+    scale: 0.1
+
+region:
+  alpha_global:
+    loc: 4
+    scale: 1
+  beta_global:
+    loc: 0
+    scale: 0.1
+  sigma:
+    scale: 0.1
