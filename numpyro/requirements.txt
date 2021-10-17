@@ -1,0 +1,4 @@
+-e ../datalib
+jaxlib
+jax[cuda111]
+numpyro==0.8.0
