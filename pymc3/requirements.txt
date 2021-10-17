@@ -1,0 +1,5 @@
+-e ../datalib
+pymc3==3.11
+seaborn
+black
+scikit-learn
