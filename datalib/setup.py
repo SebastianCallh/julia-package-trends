@@ -7,5 +7,5 @@ setup(
     author="Sebastian Callh",
     author_email="sebastian.calh@gmail.com",
     packages=["datalib"],
-    install_requires=["pandas", "seaborn"],
+    install_requires=["pandas", "seaborn", "scikit-learn"],
 )

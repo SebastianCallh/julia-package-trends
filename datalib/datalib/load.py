@@ -1,7 +1,9 @@
 import os
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 from glob import glob
+
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import numpy as np
 
@@ -37,14 +39,25 @@ def requests_by_region_by_date() -> pd.DataFrame:
         .groupby(["date", "region", "client_type"])
         .sum()
         .reset_index()
-        .rename(columns={
-            "date": "Date",
-            "region": "Region",
-            "client_type": "Client type",
-            "request_count": "Request count"
-        })
+        .rename(
+            columns={
+                "date": "Date",
+                "region": "Region",
+                "client_type": "Client type",
+                "request_count": "Request count",
+            }
+        )
     )
 
     df["Date"] = pd.to_datetime(df["Date"])
-    df["Request count (log10)"] =  np.log10(df["Request count"])
+    df["Request count (log10)"] = np.log10(df["Request count"])
     return df
+
+
+def features_and_target(
+    df: pd.DataFrame,
+) -> Tuple[np.ndarray, np.ndarray, StandardScaler]:
+    scaler = StandardScaler()
+    x = scaler.fit_transform(df["Date"].values.reshape(-1, 1)).flatten()
+    y = df["Request count (log10)"].values
+    return x, y, scaler
