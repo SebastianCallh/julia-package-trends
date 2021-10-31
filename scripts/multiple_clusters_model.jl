@@ -4,7 +4,7 @@ Turing.setadbackend(:reversediff)
 Turing.emptyrdcache()
 Turing.setrdcache(true)
 
-out_path = joinpath(plots_path, "multiple_clusters_model2")
+out_path = joinpath(plots_path, "multiple-clusters-model")
 isdir(out_path) || mkdir(out_path)
 save_path(file) = joinpath(out_path, file)
 
@@ -53,25 +53,7 @@ function posterior_predictive_plot(plt, chain, t)
     plt
 end
 
-function scatter_data(plt, df)
-    plot(df, client_type, marker) = begin
-        for (i, (key, grp)) in enumerate(pairs(groupby(df, :region)))
-            scatter!(
-                plt,
-                day.(grp.date), grp.log10_request_count,
-                color=i,
-                markershape=marker,
-                label="$client_type $(key.region)"
-            )
-        end 
-    end
-
-    plot(filter(x -> x.client_type == "ci", df), "ci", :rect)
-    plot(filter(x -> x.client_type == "user", df), "user", :circle)
-    plot!(plt, legend=:bottomleft)
-end
-
-@model pooled_regions_client_types(x, y, r, R, t, T) = begin
+@model multiple_clusters_model(x, y, r, R, t, T) = begin
     αᵣμ ~ Normal(2, 1)
     βᵣμ ~ Normal(0, 1)
     αₜμ ~ Normal(2, 1)
@@ -98,8 +80,8 @@ end
     y ~ lazydist(Normal, α .+ αᵣ[r] .+ αₜ[t] .+ (β .+ βᵣ[r] .+ βₜ[t]).*x, σ[r][t])
 end
 
-const prediction(chain, t) = predict(pooled_regions_client_types(xx, missing, rr, R, t, T), chain)
-model = pooled_regions_client_types(x, y, r, R, t, T)
+const prediction(chain, t) = predict(multiple_clusters_model(xx, missing, rr, R, t, T), chain)
+model = multiple_clusters_model(x, y, r, R, t, T)
 prior_chain = sample(model, Prior(), 50)
 prior_pooled_pred_plt = prior_predictive_plot(prior_chain, Int.(ones(size(tt))))
 scatter_data(prior_pooled_pred_plt, df)
@@ -109,13 +91,16 @@ plot(prior_chain)
 @time post_chain = sample(model, NUTS(), MCMCThreads(), 500, 4, progress=false);
 plot(post_chain)
 
+eu_us_df = filter(x -> x.region in ["us-east", "us-west", "eu-central"], df)
 post_pred_user_plt = plot();
 posterior_predictive_plot(post_pred_user_plt, post_chain, Int.(1*ones(size(tt))));
-scatter_data(post_pred_user_plt, filter(x -> x.client_type == "user", df))
+scatter_data(post_pred_user_plt, filter(x -> x.client_type == "user", eu_us_df));
+plot!(post_pred_user_plt, title="Posterior predictive, users")
 
 post_pred_ci_plt = plot();
 posterior_predictive_plot(post_pred_ci_plt, post_chain, Int.(2*ones(size(tt))));
-scatter_data(post_pred_ci_plt, filter(x -> x.client_type == "ci", df))
+scatter_data(post_pred_ci_plt, filter(x -> x.client_type == "ci", eu_us_df))
+plot!(post_pred_ci_plt, title="Posterior predictive, CI")
 post_pred_plt = plot(post_pred_user_plt, post_pred_ci_plt, layout=(2, 1), size=(600, 600))
 savefig(post_pred_plt, save_path("posterior_predictive_us_eu.svg"))
 

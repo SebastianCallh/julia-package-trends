@@ -1,12 +1,16 @@
 include("../src/common.jl")
 
-function prior_predictive_plot(chain) 
-    pred = prediction(chain)
+out_path = joinpath(plots_path, "pooled-regions-model")
+isdir(out_path) || mkdir(out_path)
+save_path(file) = joinpath(out_path, file)
+
+function plot_predictive_samples(chain, rr)
+    pred = prediction(chain, rr)
     plot(
         day_transform(xx; inverse=true),
         group(pred, "y").value.data[:,:,1]',
         group=rr,
-        title="Prior samples for $client_type",
+        title="Predictive samples",
         xlabel="Days",
         ylabel="Package downloads (log10)",
         label=nothing,
@@ -15,7 +19,7 @@ function prior_predictive_plot(chain)
     )
 end
 
-function posterior_predictive_plot(chain)
+function plot_predictive_distribution(chain, rr)
     pred = prediction(chain, rr)
     ss = summarystats(group(pred, "y"))
     plot(
@@ -23,21 +27,11 @@ function posterior_predictive_plot(chain)
         ss[:,:mean],
         ribbon=2*ss[:,:std],
         group=rr,
-        title="Posterior predictive distribution",
+        title="Predictive distribution",
         xlabel="Days",
         ylabel="Package downloads (log10)",
         label=nothing,
         legend=:bottomright
-    )
-end
-
-function scatter_data(plt)
-    scatter!(
-        plt,
-        day_transform(x; inverse=true), y,
-        group=r,
-        color=colors,
-        label=regions
     )
 end
 
@@ -58,20 +52,16 @@ end
 const prediction(chain, t) = predict(pooled_regions(xx, missing, rr, R), chain)
 model = pooled_regions(x, y, r, R)
 prior_chain = sample(model, Prior(), 50; progress=false);
-prior_pred_plt = prior_predictive_plot(prior_chain, rr)
-scatter_data(prior_pred_plt)
+prior_pred_plt = plot_predictive_samples(prior_chain, rr)
+scatter_data(prior_pred_plt, df)
 plot(prior_chain)
 
 @time post_chain = sample(model, NUTS(), 500);
-
-βs = generated_quantities(model, post_chain);
 plot(post_chain)
 
-corner(group(post_chain, "β"))
-corner(uncentered_post_chain)
 
-post_pred_pooled_plt = posterior_predictive_plot(post_chain)
-scatter_data(post_pred_pooled_plt)
+post_pred_pooled_plt = plot_predictive_distribution(post_chain, rr)
+scatter_data(post_pred_pooled_plt, df)
 savefig(post_pred_pooled_plt, save_path("package_request_posterior_predictive.svg"))
 
 βs = group(post_chain, "β").value.data[:,:,1]

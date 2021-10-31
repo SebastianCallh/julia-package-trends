@@ -3,9 +3,7 @@ using Dates, CSV, DataFrames, StatsPlots, Pipe, Turing, FeatureTransforms, Stati
 
 df_raw = CSV.read("data/package_requests_by_region_by_date.csv", DataFrame)
 allowed_regions = ["eu-central", "us-east", "us-west", "cn-southeast", "cn-northeast", "cn-east"]
-plots_path = "plots/"
-save_path(file) = joinpath(plots_path, file)
-isdir(plots_path) || mkdir(plots_path)
+plots_path = "plots"
 
 df = @pipe df_raw |>
     sort(_, :date) |>
@@ -56,9 +54,36 @@ const client_types = reshape(unique(df.client_type), 1,: )
 const R = length(unique(r))
 const T = length(unique(t))
 
+
+const M = 50
+const N = 50
+const xx = mapreduce(r -> range(extrema(x)..., length=N), vcat, 1:R)
+const rr = mapreduce(r -> repeat([r], N), vcat, 1:R)
+const tt = mapreduce(t -> repeat([t], N), vcat, repeat(collect(1:T), 3))
+
 pal = get_color_palette(:auto, R)
 colors = [pal[i] for i in r]
 lazydist(dist, args...) = arraydist(LazyArray(@~ dist.(args...)))
+
+
+function scatter_data(plt, df)
+    plot(df, client_type, marker) = begin
+        for (i, (key, grp)) in enumerate(pairs(groupby(df, :region)))
+            scatter!(
+                plt,
+                day.(grp.date), grp.log10_request_count,
+                color=Int64.(first(region_trans([key.region]))),
+                markershape=marker,
+                label="$(key.region)",
+            )
+        end 
+    end
+
+    plot(filter(x -> x.client_type == "ci", df), "ci", :rect)
+    plot(filter(x -> x.client_type == "user", df), "user", :circle)
+    plot!(plt, legend=:bottomleft)
+end
+
 
 #= 
 x = df.standardized_day
