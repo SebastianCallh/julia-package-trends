@@ -1,5 +1,6 @@
-julia-package-stats-pymc3
+__pycache__/
+*.egg
 *.egg-info
 *.csv
-*.pyc
 *.bson
+julia-package-stats-pymc3
